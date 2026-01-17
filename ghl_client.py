@@ -13,16 +13,16 @@ HEADERS = {
 }
 
 
-def paginated_get(endpoint: str, params: dict, data_key: str):
+def paginated_get(endpoint: str, data_key: str):
     results = []
     page = 1
 
     while True:
-        params.update({
+        params = {
             "location_id": LOCATION_ID,
             "page": page,
             "limit": 100
-        })
+        }
 
         response = requests.get(
             f"{BASE_URL}{endpoint}",
@@ -45,29 +45,15 @@ def paginated_get(endpoint: str, params: dict, data_key: str):
     return results
 
 
-def get_opportunities(start_date=None, end_date=None):
-    params = {}
-    if start_date:
-        params["createdAt[gte]"] = start_date
-    if end_date:
-        params["createdAt[lte]"] = end_date
-
+def get_opportunities():
     return paginated_get(
         endpoint="/opportunities/search",
-        params=params,
         data_key="opportunities"
     )
 
 
-def get_contacts(start_date=None, end_date=None):
-    params = {}
-    if start_date:
-        params["createdAt[gte]"] = start_date
-    if end_date:
-        params["createdAt[lte]"] = end_date
-
+def get_contacts():
     return paginated_get(
         endpoint="/contacts/",
-        params=params,
         data_key="contacts"
     )
