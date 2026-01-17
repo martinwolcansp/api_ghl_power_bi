@@ -12,7 +12,6 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-
 def paginated_get(endpoint: str, data_key: str):
     results = []
     page = 1
@@ -31,7 +30,9 @@ def paginated_get(endpoint: str, data_key: str):
         )
 
         if response.status_code != 200:
-            raise Exception(f"GHL API error {response.status_code}: {response.text}")
+            raise Exception(
+                f"GHL API error {response.status_code}: {response.text}"
+            )
 
         data = response.json()
         items = data.get(data_key, [])
@@ -54,6 +55,6 @@ def get_opportunities():
 
 def get_contacts():
     return paginated_get(
-        endpoint="/contacts/",
+        endpoint="/contacts/search",
         data_key="contacts"
     )
