@@ -35,7 +35,7 @@ def get_opportunities():
             timeout=30
         )
 
-        if response.status_code != 200:
+        if response.status_code not in (200, 201):
             raise Exception(
                 f"GHL API error {response.status_code}: {response.text}"
             )
