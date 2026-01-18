@@ -12,7 +12,8 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-def paginated_get(endpoint: str, data_key: str):
+
+def get_opportunities():
     results = []
     page = 1
 
@@ -24,37 +25,58 @@ def paginated_get(endpoint: str, data_key: str):
         }
 
         response = requests.get(
-            f"{BASE_URL}{endpoint}",
+            f"{BASE_URL}/opportunities/search",
             headers=HEADERS,
             params=params
         )
 
         if response.status_code != 200:
-            raise Exception(
-                f"GHL API error {response.status_code}: {response.text}"
-            )
+            raise Exception(f"GHL API error {response.status_code}: {response.text}")
 
         data = response.json()
-        items = data.get(data_key, [])
+        opps = data.get("opportunities", [])
 
-        if not items:
+        if not opps:
             break
 
-        results.extend(items)
+        results.extend(opps)
         page += 1
 
     return results
 
 
-def get_opportunities():
-    return paginated_get(
-        endpoint="/opportunities/search",
-        data_key="opportunities"
-    )
-
-
 def get_contacts():
-    return paginated_get(
-        endpoint="/contacts/search",
-        data_key="contacts"
-    )
+    results = []
+    start_after_id = None
+
+    while True:
+        params = {
+            "locationId": LOCATION_ID,
+            "limit": 100
+        }
+
+        if start_after_id:
+            params["startAfterId"] = start_after_id
+
+        response = requests.get(
+            f"{BASE_URL}/contacts/",
+            headers=HEADERS,
+            params=params
+        )
+
+        if response.status_code != 200:
+            raise Exception(f"GHL API error {response.status_code}: {response.text}")
+
+        data = response.json()
+        contacts = data.get("contacts", [])
+
+        if not contacts:
+            break
+
+        results.extend(contacts)
+
+        start_after_id = data.get("meta", {}).get("startAfterId")
+        if not start_after_id:
+            break
+
+    return results
