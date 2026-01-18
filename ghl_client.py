@@ -14,69 +14,41 @@ HEADERS = {
 
 
 def get_opportunities():
-    results = []
-    page = 1
+    """
+    Obtiene oportunidades sin parámetros adicionales
+    """
+    response = requests.get(
+        f"{BASE_URL}/opportunities/search",
+        headers=HEADERS,
+        timeout=30
+    )
 
-    while True:
-        params = {
-            "location_id": LOCATION_ID,
-            "page": page,
-            "limit": 100
-        }
-
-        response = requests.get(
-            f"{BASE_URL}/opportunities/search",
-            headers=HEADERS,
-            params=params
+    if response.status_code != 200:
+        raise Exception(
+            f"GHL API error {response.status_code}: {response.text}"
         )
 
-        if response.status_code != 200:
-            raise Exception(f"GHL API error {response.status_code}: {response.text}")
-
-        data = response.json()
-        opps = data.get("opportunities", [])
-
-        if not opps:
-            break
-
-        results.extend(opps)
-        page += 1
-
-    return results
+    return response.json().get("opportunities", [])
 
 
-def get_contacts():
-    results = []
-    start_after_id = None
-
-    while True:
-        params = {
+def get_contacts(limit: int = 100):
+    """
+    Obtiene contactos usando Private Integration API Key
+    (misma lógica que prueba local)
+    """
+    response = requests.get(
+        f"{BASE_URL}/contacts/",
+        headers=HEADERS,
+        params={
             "locationId": LOCATION_ID,
-            "limit": 100
-        }
+            "limit": limit
+        },
+        timeout=30
+    )
 
-        if start_after_id:
-            params["startAfterId"] = start_after_id
-
-        response = requests.get(
-            f"{BASE_URL}/contacts/",
-            headers=HEADERS,
-            params=params
+    if response.status_code != 200:
+        raise Exception(
+            f"GHL API error {response.status_code}: {response.text}"
         )
 
-        if response.status_code != 200:
-            raise Exception(f"GHL API error {response.status_code}: {response.text}")
-
-        data = response.json()
-        contacts = data.get("contacts", [])
-
-        if not contacts:
-            break
-
-        results.extend(contacts)
-
-        start_after_id = data.get("meta", {}).get("startAfterId")
-        if not start_after_id:
-            break
-
-    return results
+    return response.json().get("contacts", [])
