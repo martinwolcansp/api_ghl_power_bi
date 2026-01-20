@@ -54,23 +54,35 @@ def get_opportunities():
 
 def get_contacts(limit: int = 100):
     """
-    Obtiene contactos usando Private Integration API Key
-    (misma lógica que prueba local)
+    Obtiene TODOS los contactos usando paginación
     """
-    response = requests.get(
-        f"{BASE_URL}/contacts/",
-        headers=HEADERS,
-        params={
-            "locationId": LOCATION_ID,
-            "limit": limit
-        },
-        timeout=30
-    )
+    results = []
+    offset = 0
 
-    if response.status_code != 200:
-        raise Exception(
-            f"GHL API error {response.status_code}: {response.text}"
+    while True:
+        response = requests.get(
+            f"{BASE_URL}/contacts/",
+            headers=HEADERS,
+            params={
+                "locationId": LOCATION_ID,
+                "limit": limit,
+                "offset": offset
+            },
+            timeout=30
         )
 
-    return response.json().get("contacts", [])
+        if response.status_code != 200:
+            raise Exception(
+                f"GHL API error {response.status_code}: {response.text}"
+            )
 
+        data = response.json()
+        contacts = data.get("contacts", [])
+
+        if not contacts:
+            break
+
+        results.extend(contacts)
+        offset += limit
+
+    return results
