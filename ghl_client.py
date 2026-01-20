@@ -54,20 +54,19 @@ def get_opportunities():
 
 def get_contacts(limit: int = 100):
     """
-    Obtiene TODOS los contactos usando paginación
+    Obtiene TODOS los contactos usando paginación por cursor (startAfter)
     """
     results = []
-    offset = 0
+    params = {
+        "locationId": LOCATION_ID,
+        "limit": limit
+    }
 
     while True:
         response = requests.get(
             f"{BASE_URL}/contacts/",
             headers=HEADERS,
-            params={
-                "locationId": LOCATION_ID,
-                "limit": limit,
-                "offset": offset
-            },
+            params=params,
             timeout=30
         )
 
@@ -78,11 +77,18 @@ def get_contacts(limit: int = 100):
 
         data = response.json()
         contacts = data.get("contacts", [])
+        meta = data.get("meta", {})
 
         if not contacts:
             break
 
         results.extend(contacts)
-        offset += limit
+
+        # Cursor pagination
+        if not meta.get("nextPageUrl"):
+            break
+
+        params["startAfter"] = meta.get("startAfter")
+        params["startAfterId"] = meta.get("startAfterId")
 
     return results
