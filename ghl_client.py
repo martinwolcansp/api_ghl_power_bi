@@ -56,17 +56,23 @@ def get_opportunities():
 
 
 def get_contacts(limit: int = 100):
-    """
-    Obtiene TODOS los contactos usando paginación por cursor (startAfter)
-    """
     results = []
 
-    params = {
-        "locationId": LOCATION_ID,
-        "limit": limit
-    }
-
     while True:
+        # 🔒 params NUEVO en cada iteración
+        params = {
+            "locationId": LOCATION_ID,
+            "limit": limit
+        }
+
+        # Si ya tenemos cursor, lo agregamos de forma segura
+        if results:
+            params["startAfter"] = last_start_after
+            params["startAfterId"] = last_start_after_id
+
+        # 🚫 Blindaje total: nunca permitir search_after
+        params.pop("search_after", None)
+
         response = requests.get(
             f"{BASE_URL}/contacts",
             headers=HEADERS,
@@ -91,8 +97,8 @@ def get_contacts(limit: int = 100):
         if not meta.get("nextPageUrl"):
             break
 
-        # 🔒 CAST A STRING (clave para evitar parsing_exception)
-        params["startAfter"] = str(meta.get("startAfter"))
-        params["startAfterId"] = str(meta.get("startAfterId"))
+        # 🔒 Guardamos cursor como STRING
+        last_start_after = str(meta.get("startAfter"))
+        last_start_after_id = str(meta.get("startAfterId"))
 
     return results
