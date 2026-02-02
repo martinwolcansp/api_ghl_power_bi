@@ -17,16 +17,19 @@ def get_opportunities():
     """
     Obtiene oportunidades sin filtros adicionales
     """
-    payload = {
-        "locationId": LOCATION_ID,
-        "limit": 100
-    }
-
     results = []
     page = 1
 
     while True:
-        payload["page"] = page
+        # ⚠️ Payload NUEVO por iteración (evita contaminación)
+        payload = {
+            "locationId": LOCATION_ID,
+            "limit": 100,
+            "page": page
+        }
+
+        # 🔒 Blindaje por si el dict viene contaminado
+        payload.pop("search_after", None)
 
         response = requests.post(
             f"{BASE_URL}/opportunities/search",
@@ -53,6 +56,9 @@ def get_opportunities():
 
 
 def get_contacts(limit: int = 100):
+    """
+    Obtiene TODOS los contactos usando paginación por cursor (startAfter)
+    """
     results = []
 
     params = {
@@ -85,9 +91,8 @@ def get_contacts(limit: int = 100):
         if not meta.get("nextPageUrl"):
             break
 
-        # 🔒 CAST A STRING (clave)
+        # 🔒 CAST A STRING (clave para evitar parsing_exception)
         params["startAfter"] = str(meta.get("startAfter"))
         params["startAfterId"] = str(meta.get("startAfterId"))
 
     return results
-
