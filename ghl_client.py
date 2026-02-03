@@ -55,33 +55,22 @@ def get_opportunities():
     return results
 
 
-def get_contacts(limit: int = 100):
-    results = []
+def get_contacts(limit=100, max_loops=5):
+    """
+    Fuerza requests SIN cursor para evitar search_after.
+    Repite llamadas 'primera página' y deduplica.
+    """
+    results = {}
+    loops = 0
 
-    last_start_after = None
-    last_start_after_id = None
-
-    while True:
-        params = {
-            "locationId": LOCATION_ID,
-            "limit": limit
-        }
-
-        if last_start_after and last_start_after_id:
-            params["startAfter"] = last_start_after
-            params["startAfterId"] = last_start_after_id
-
-        # 🔍 DEBUG CLAVE (ACÁ)
-        print(
-            "PARAMS >>>",
-            params,
-            {k: type(v) for k, v in params.items()}
-        )
-
+    while loops < max_loops:
         response = requests.get(
             f"{BASE_URL}/contacts",
             headers=HEADERS,
-            params=params,
+            params={
+                "locationId": LOCATION_ID,
+                "limit": limit
+            },
             timeout=30
         )
 
@@ -90,22 +79,17 @@ def get_contacts(limit: int = 100):
                 f"GHL API error {response.status_code}: {response.text}"
             )
 
-        data = response.json()
-        contacts = data.get("contacts", [])
-        meta = data.get("meta", {})
+        contacts = response.json().get("contacts", [])
 
         if not contacts:
             break
 
-        results.extend(contacts)
+        # deduplicación por id
+        for c in contacts:
+            results[c["id"]] = c
 
-        if not meta.get("startAfter") or not meta.get("startAfterId"):
-            break
+        loops += 1
 
-        last_start_after = f"{meta['startAfter']}"
-        last_start_after_id = f"{meta['startAfterId']}"
-
-    return results
-
+    return list(results.values())
 
 
