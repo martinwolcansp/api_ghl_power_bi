@@ -67,10 +67,16 @@ def get_contacts(limit: int = 100):
             "limit": limit
         }
 
-        # Cursor SOLO si existe
         if last_start_after and last_start_after_id:
             params["startAfter"] = last_start_after
             params["startAfterId"] = last_start_after_id
+
+        # 🔍 DEBUG CLAVE (ACÁ)
+        print(
+            "PARAMS >>>",
+            params,
+            {k: type(v) for k, v in params.items()}
+        )
 
         response = requests.get(
             f"{BASE_URL}/contacts",
@@ -93,13 +99,13 @@ def get_contacts(limit: int = 100):
 
         results.extend(contacts)
 
-        # Si no hay siguiente página, cortamos
         if not meta.get("startAfter") or not meta.get("startAfterId"):
             break
 
-        # Guardamos cursor (string, como espera GHL)
-        last_start_after = str(meta["startAfter"])
-        last_start_after_id = str(meta["startAfterId"])
+        last_start_after = f"{meta['startAfter']}"
+        last_start_after_id = f"{meta['startAfterId']}"
 
     return results
+
+
 
