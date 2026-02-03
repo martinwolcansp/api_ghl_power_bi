@@ -58,20 +58,19 @@ def get_opportunities():
 def get_contacts(limit: int = 100):
     results = []
 
+    last_start_after = None
+    last_start_after_id = None
+
     while True:
-        # 🔒 params NUEVO en cada iteración
         params = {
             "locationId": LOCATION_ID,
             "limit": limit
         }
 
-        # Si ya tenemos cursor, lo agregamos de forma segura
-        if results:
+        # Cursor SOLO si existe
+        if last_start_after and last_start_after_id:
             params["startAfter"] = last_start_after
             params["startAfterId"] = last_start_after_id
-
-        # 🚫 Blindaje total: nunca permitir search_after
-        params.pop("search_after", None)
 
         response = requests.get(
             f"{BASE_URL}/contacts",
@@ -94,11 +93,13 @@ def get_contacts(limit: int = 100):
 
         results.extend(contacts)
 
-        if not meta.get("nextPageUrl"):
+        # Si no hay siguiente página, cortamos
+        if not meta.get("startAfter") or not meta.get("startAfterId"):
             break
 
-        # 🔒 Guardamos cursor como STRING
-        last_start_after = str(meta.get("startAfter"))
-        last_start_after_id = str(meta.get("startAfterId"))
+        # Guardamos cursor (string, como espera GHL)
+        last_start_after = str(meta["startAfter"])
+        last_start_after_id = str(meta["startAfterId"])
 
     return results
+
