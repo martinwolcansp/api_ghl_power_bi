@@ -12,6 +12,16 @@ def root():
 def opportunities():
     return JSONResponse(content=get_opportunities())
 
+
+@app.get("/ghl/contacts")
+def contacts():
+    contacts = get_contacts()
+    print("CONTACTS COUNT >>>", len(contacts))
+    return JSONResponse(content=contacts)
+
+
+"""
 @app.get("/ghl/contacts")
 def contacts():
     return JSONResponse(content=get_contacts())
+""""

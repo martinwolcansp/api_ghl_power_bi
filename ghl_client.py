@@ -55,22 +55,23 @@ def get_opportunities():
     return results
 
 
-def get_contacts(limit=100, max_loops=5):
-    """
-    Fuerza requests SIN cursor para evitar search_after.
-    Repite llamadas 'primera página' y deduplica.
-    """
-    results = {}
-    loops = 0
+def get_all_contacts(limit=100):
+    all_contacts = []
+    start_after = None
 
-    while loops < max_loops:
+    while True:
+        params = {
+            "locationId": LOCATION_ID,
+            "limit": limit
+        }
+
+        if start_after:
+            params["startAfter"] = start_after
+
         response = requests.get(
             f"{BASE_URL}/contacts",
             headers=HEADERS,
-            params={
-                "locationId": LOCATION_ID,
-                "limit": limit
-            },
+            params=params,
             timeout=30
         )
 
@@ -79,23 +80,16 @@ def get_contacts(limit=100, max_loops=5):
                 f"GHL API error {response.status_code}: {response.text}"
             )
 
-        contacts = response.json().get("contacts", [])
+        data = response.json()
+        contacts = data.get("contacts", [])
+        all_contacts.extend(contacts)
 
-        if not contacts:
+        start_after = data.get("meta", {}).get("startAfter")
+
+        if not start_after:
             break
 
-        # deduplicación por id
-        for c in contacts:
-            results[c["id"]] = c
+    return all_contacts
 
-        loops += 1
-
-        contacts = list(results.values())
-
-        print("TOTAL CONTACTS >>>", len(contacts))
-        print("FIRST IDs >>>", [c["id"] for c in contacts[:5]])
-        print("LAST IDs >>>", [c["id"] for c in contacts[-5:]])
-
-        return list(results.values())
 
 
