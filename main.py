@@ -23,4 +23,4 @@ def contacts():
 @app.get("/ghl/contacts")
 def contacts():
     return JSONResponse(content=get_contacts())
-""""
+"""
