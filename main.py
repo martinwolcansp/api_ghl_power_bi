@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from ghl_client import get_opportunities, get_contacts
+from ghl_client import get_opportunities, get_all_contacts
 
 app = FastAPI(title="GHL API")
 
@@ -14,7 +14,7 @@ def opportunities():
 
 @app.get("/ghl/contacts")
 def contacts():
-    contacts = get_contacts()
+    contacts = get_all_contacts()
     print("CONTACTS COUNT >>>", len(contacts))
     return JSONResponse(content=contacts)
 
