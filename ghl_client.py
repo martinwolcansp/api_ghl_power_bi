@@ -90,6 +90,12 @@ def get_contacts(limit=100, max_loops=5):
 
         loops += 1
 
-    return list(results.values())
+        contacts = list(results.values())
+
+        print("TOTAL CONTACTS >>>", len(contacts))
+        print("FIRST IDs >>>", [c["id"] for c in contacts[:5]])
+        print("LAST IDs >>>", [c["id"] for c in contacts[-5:]])
+
+        return list(results.values())
 
 
