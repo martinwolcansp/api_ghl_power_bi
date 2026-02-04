@@ -56,22 +56,20 @@ def get_opportunities():
 
 
 def get_all_contacts(limit=100):
-    all_contacts = []
-    start_after = None
+    results = []
+    page = 1
 
     while True:
-        params = {
+        payload = {
             "locationId": LOCATION_ID,
-            "limit": limit
+            "limit": limit,
+            "page": page
         }
 
-        if start_after:
-            params["startAfter"] = start_after
-
-        response = requests.get(
-            f"{BASE_URL}/contacts",
+        response = requests.post(
+            f"{BASE_URL}/contacts/search",
             headers=HEADERS,
-            params=params,
+            json=payload,
             timeout=30
         )
 
@@ -82,24 +80,21 @@ def get_all_contacts(limit=100):
 
         data = response.json()
         contacts = data.get("contacts", [])
-        all_contacts.extend(contacts)
-
 
         print(
-            "PAGE >>>",
-            len(contacts),
-            "TOTAL >>>",
-            len(all_contacts),
-            "START_AFTER >>>",
-            start_after
+            "PAGE >>>", page,
+            "COUNT >>>", len(contacts),
+            "TOTAL >>>", len(results) + len(contacts)
         )
 
-        start_after = data.get("meta", {}).get("startAfter")
-
-        if not start_after:
+        if not contacts:
             break
 
-    return all_contacts
+        results.extend(contacts)
+        page += 1
+
+    return results
+
 
 
 
