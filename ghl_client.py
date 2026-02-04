@@ -84,6 +84,16 @@ def get_all_contacts(limit=100):
         contacts = data.get("contacts", [])
         all_contacts.extend(contacts)
 
+
+        print(
+            "PAGE >>>",
+            len(contacts),
+            "TOTAL >>>",
+            len(all_contacts),
+            "START_AFTER >>>",
+            start_after
+        )
+
         start_after = data.get("meta", {}).get("startAfter")
 
         if not start_after:
