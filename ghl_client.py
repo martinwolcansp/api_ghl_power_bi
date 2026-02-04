@@ -55,15 +55,15 @@ def get_opportunities():
     return results
 
 
-def get_all_contacts(limit=100):
+def get_all_contacts(page_limit=100):
     results = []
     page = 1
 
     while True:
         payload = {
             "locationId": LOCATION_ID,
-            "limit": limit,
-            "page": page
+            "page": page,
+            "pageLimit": page_limit
         }
 
         response = requests.post(
